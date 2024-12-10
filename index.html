@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced HTML Converter</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e1e1e;
+            --code-color: #d4d4d4;
+        }
+
+        [data-theme="dark"] {
+            --background-color: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #475569;
+            --code-bg: #2d2d2d;
+            --code-color: #e0e0e0;
+        }
+[data-theme="dark"] h1 {
+    color: #000000; 
+}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 20px;
+            touch-action: manipulation;
+            transition: all 0.3s ease;
+        }
+
+        .app-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .input-section, .output-section {
+            margin-bottom: 20px;
+        }
+
+        .formatting-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            padding: 6px 12px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            transition: all 0.2s;
+        }
+
+        .format-btn:hover {
+            background: var(--border-color);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            background: var(--background-color);
+            color: var(--text-color);
+            transition: border-color 0.2s;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .convert-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .convert-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .copy-btn {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .copy-btn:hover {
+            background-color: var(--border-color);
+        }
+
+.output-container {
+    background: var(--background-color);
+    padding: 16px;
+    padding-top: 48px; /* Thêm padding-top để tránh chắn nội dung */
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+
+        #outputHTML {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+.output-type-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    background: white;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    z-index: 10; /* Đảm bảo nút luôn nổi lên trên */
+}
+        .output-type-btn {
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 2px;
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .output-type-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .preview {
+            display: none;
+        }
+
+        .preview.active {
+            display: block;
+        }
+
+        .live-update-btn {
+    position: absolute;
+    top: 8px;
+    right: 140px; /* Điều chỉnh khoảng cách với output-type-toggle */
+    padding: 4px 8px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+        .live-update-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .preview code {
+            background: var(--code-bg);
+            color: var(--code-color);
+            padding: 16px;
+            border-radius: 6px;
+            display: block;
+            overflow-x: auto;
+        }
+
+       @media (max-width: 640px) {
+    .output-container {
+        padding-top: 80px; /* Tăng padding-top trên mobile */
+    }
+
+    .live-update-btn {
+        top: 50px;
+        right: 8px;
+    }
+
+    .output-type-toggle {
+        top: 8px;
+        right: 8px;
+        width: auto; /* Cho phép width tự động điều chỉnh */
+    }
+}
+
+
+        /* Ảnh bài viết Styles */
+
+.image-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.article-image {
+    width: 100%;
+    max-width: 800px;
+    height: auto; /* Để chiều cao tự động theo tỷ lệ ảnh */
+    max-height: 800px; /* Giới hạn chiều cao tối đa */
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+figcaption {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+    padding: 0 10px;
+    line-height: 1.5;
+}
+
+/* Responsive cho mobile */
+@media screen and (max-width: 850px) {
+    .image-container {
+        padding: 5px;
+    }
+    
+    .article-image {
+        max-height: 500px; /* Giới hạn chiều cao trên mobile */
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>Advanced HTML Converter</h1>
+            <div class="controls">
+                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="formatting-toolbar">
+                <button class="format-btn" onclick="insertFormat('bold')">Bold</button>
+                <button class="format-btn" onclick="insertFormat('italic')">Italic</button>
+                <button class="format-btn" onclick="insertFormat('heading')">Heading</button>
+                <button class="format-btn" onclick="insertFormat('link')">Link</button>
+                <button class="format-btn" onclick="insertFormat('code')">Code</button>
+                <button class="format-btn" onclick="insertFormat('list')">List</button>
+            </div>
+            <textarea id="inputText" placeholder="Paste your content here...
+Supported Markdown:
+# Heading 1
+## Heading 2
+**Bold text**
+*Italic text*
+- List item
+1. Numbered list
+[Link text](url)
+`Inline code`
+```
+Code block
+```"></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="convert-btn" onclick="convertToHTML()">Convert to HTML</button>
+            <button class="copy-btn" onclick="copyToClipboard()">Copy HTML</button>
+        </div>
+
+        <div class="output-section">
+            <div class="output-container">
+                <button class="live-update-btn" onclick="updatePreview()">Update Preview</button>
+                <div class="output-type-toggle">
+                    <button class="output-type-btn active" onclick="toggleOutput('source')">Source</button>
+                    <button class="output-type-btn" onclick="toggleOutput('preview')">Preview</button>
+                </div>
+                <textarea id="outputHTML" class="preview active" spellcheck="false"></textarea>
+                <div id="previewHTML" class="preview"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Copied to clipboard!</div>
+
+    <script>
+        let isDarkMode = false;
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            document.querySelector('.theme-toggle').textContent = isDarkMode ? '☀️' : '🌙';
+        }
+
+        function insertFormat(type) {
+            const textarea = document.getElementById('inputText');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            let insert = '';
+
+            switch(type) {
+                case 'bold':
+                    insert = `**${text.substring(start, end) || 'bold text'}**`;
+                    break;
+                case 'italic':
+                    insert = `*${text.substring(start, end) || 'italic text'}*`;
+                    break;
+                case 'heading':
+                    insert = `\n# ${text.substring(start, end) || 'Heading'}`;
+                    break;
+                case 'link':
+                    insert = `[${text.substring(start, end) || 'link text'}](url)`;
+                    break;
+                case 'code':
+                    insert = text.substring(start, end).includes('\n') 
+                        ? `\n\`\`\`\n${text.substring(start, end) || 'code block'}\n\`\`\`\n`
+                        : `\`${text.substring(start, end) || 'inline code'}\``;
+                    break;
+                case 'list':
+                    insert = `\n- ${text.substring(start, end) || 'List item'}`;
+                    break;
+            }
+
+            textarea.value = text.substring(0, start) + insert + text.substring(end);
+            textarea.focus();
+            const newPosition = start + insert.length;
+            textarea.setSelectionRange(newPosition, newPosition);
+        }
+
+        function convertToHTML() {
+            const inputText = document.getElementById('inputText').value;
+            if (!inputText.trim()) {
+                showToast('Please paste some content to convert!');
+                return;
+            }
+
+            // Split into blocks
+            const blocks = inputText.split(/\n\n+/);
+            let htmlOutput = '';
+
+            blocks.forEach(block => {
+                // Clean the block
+                const cleanBlock = block.trim()
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+
+                // Code blocks
+                if (cleanBlock.startsWith('```')) {
+                    const code = cleanBlock.replace(/^```\s*\n?/, '').replace(/\n?```$/, '');
+                    htmlOutput += `<pre><code>${code}</code></pre>\n`;
+                    return;
+                }
+
+                // Process the block
+                let processedBlock = cleanBlock
+                    // Bold
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    // Italic
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    // Inline code
+                    .replace(/`(.*?)`/g, '<code>$1</code>')
+                    // Links
+                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
+                    // Line breaks
+                    .replace(/\n/g, '<br>');
+
+                // Lists
+                if (cleanBlock.match(/^[-*+]/m)) {
+                    const items = cleanBlock.split(/\n[-*+] /).filter(item => item.trim());
+                    htmlOutput += '<ul>\n' + items.map(item => `  <li>${item.trim()}</li>`).join('\n') + '\n</ul>\n';
+                    return;
+                }
+
+                // Numbered lists
+                if (cleanBlock.match(/^\d+\./m)) {
+                    const items = cleanBlock.split(/\n\d+\. /).filter(item => item.trim());
+                    htmlOutput += '<ol>\n' + items.map(item => `  <li>${item.trim()}</li>`).join('\n') + '\n</ol>\n';
+                    return;
+                }
+
+                // Headers
+                const headerMatch = cleanBlock.match(/^(#{1,6})\s+(.+)$/);
+                if (headerMatch) {
+                    const level = headerMatch[1].length;
+                    const text = headerMatch[2];
+                    htmlOutput += `<h${level}>${text}</h${level}>\n`;
+                    return;
+                }
+
+                // Regular paragraph
+                htmlOutput += `<p>${processedBlock}</p>\n`;
+            });
+
+            document.getElementById('outputHTML').value = htmlOutput;
+            document.getElementById('previewHTML').innerHTML = htmlOutput;
+        }
+
+        function updatePreview() {
+            const htmlContent = document.getElementById('outputHTML').value;
+            document.getElementById('previewHTML').innerHTML = htmlContent;
+            showToast('Preview updated!');
+        }
+
+        function copyToClipboard() {
+            const outputHTML = document.getElementById('outputHTML').value;
+            if (!outputHTML.trim()) {
+                showToast('Nothing to copy!');
+                return;
+            }
+
+            navigator.clipboard.writeText(outputHTML).then(() => {
+                showToast('Copied to clipboard!');
+            }).catch(err => {
+                showToast('Failed to copy!');
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        function toggleOutput(type) {
+            const sourceBtn = document.querySelector('.output-type-btn:first-child');
+            const previewBtn = document.querySelector('.output-type-btn:last-child');
+            const source = document.getElementById('outputHTML');
+            const preview = document.getElementById('previewHTML');
+
+            if (type === 'source') {
+                sourceBtn.classList.add('active');
+                previewBtn.classList.remove('active');
+                source.classList.add('active');
+                preview.classList.remove('active');
+            } else {
+                sourceBtn.classList.remove('active');
+                previewBtn.classList.add('active');
+                source.classList.remove('active');
+                preview.classList.add('active');
+            }
+        }
+
+        function showToast(message, duration = 2000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // Prevent zoom on double tap
+        document.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+        });
+
+        // Prevent pull-to-refresh
+        document.body.style.overscrollBehavior = 'none';
+
+        // Convert on page load if there's content
+        window.addEventListener('load', () => {
+            const input = document.getElementById('inputText');
+            if (input.value.trim()) {
+                convertToHTML();
+            }
+        });
+    </script>
+</body>
+</html>
